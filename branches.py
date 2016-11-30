@@ -50,23 +50,26 @@ branch_13.add(Activation("relu"))
 branch_15 = Sequential()
 branch_15.add(Convolution2D(4, 5, 5, border_mode='same', input_shape=(28, 28, 1)))
 branch_15.add(Activation("relu"))
-merged = Merge([branch_11, branch_13, branch_15], mode='concat')
+merged1 = Merge([branch_11, branch_13, branch_15], mode='concat')
 
 #Second inception module
 branch_21 = Sequential()
+branch_21.add(merged1)
 branch_21.add(Convolution2D(24, 1, 1, border_mode='same', input_shape=(28, 28, 1)))
 branch_21.add(Activation("relu"))
 branch_23 = Sequential()
+branch_23.add(merged1)
 branch_23.add(Convolution2D(24, 3, 3, border_mode='same', input_shape=(28, 28, 1)))
 branch_23.add(Activation("relu"))
 branch_25 = Sequential()
+branch_25.add(merged1)
 branch_25.add(Convolution2D(24, 5, 5, border_mode='same', input_shape=(28, 28, 1)))
 branch_25.add(Activation("relu"))
-merged = Merge([branch_21, branch_23, branch_25], mode='concat')
+merged2 = Merge([branch_21, branch_23, branch_25], mode='concat')
 
 #Last processing stage
 model = Sequential()
-model.add(merged)
+model.add(merged2)
 model.add(AveragePooling2D(pool_size=(7, 7), border_mode='valid'))
 model.add(Flatten())
 model.add(Activation("relu"))
@@ -82,4 +85,4 @@ loss_and_metrics = model.evaluate([test_dataset, test_dataset, test_dataset], te
 #Show outcomes
 print("Test_score: {}".format(loss_and_metrics[0]))
 print("Test_accuracy: {}%".format(loss_and_metrics[1]*100))
-#0.340700370067, 91.08%
+#0.238143702996, 93.67%
