@@ -3,7 +3,7 @@ from six.moves import cPickle as pickle
 from six.moves import range
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Convolution2D, Flatten,\
-MaxPooling2D, AveragePooling2D, Dropout, Merge
+MaxPooling2D, AveragePooling2D, Dropout
 
 image_size = 28
 num_labels = 10
@@ -38,41 +38,15 @@ print('Training set', train_dataset.shape, train_labels.shape)
 print('Validation set', valid_dataset.shape, valid_labels.shape)
 print('Test set', test_dataset.shape, test_labels.shape)
 
-#Create quasi inception module based on GoogLeNet
-#First inception module
-branch_11 = Sequential()
-branch_11.add(Convolution2D(4, 1, 1, border_mode='same', input_shape=(28, 28, 1)))
-branch_11.add(Activation("relu"))
-branch_13 = Sequential()
-branch_13.add(Convolution2D(8, 3, 3, border_mode='same', input_shape=(28, 28, 1)))
-branch_13.add(Activation("relu"))
-branch_15 = Sequential()
-branch_15.add(Convolution2D(16, 5, 5, border_mode='same', input_shape=(28, 28, 1)))
-branch_15.add(Activation("relu"))
-merged1 = Merge([branch_11, branch_13, branch_15], mode='concat')
-
-pool1 = Sequential()
-pool1.add(merged1)
-pool1.add(MaxPooling2D(pool_size=(2, 2), border_mode='valid'))
-
-#Second inception module
-branch_21 = Sequential()
-branch_21.add(pool1)
-branch_21.add(Convolution2D(32, 1, 1, border_mode='same'))
-branch_21.add(Activation("relu"))
-branch_23 = Sequential()
-branch_23.add(pool1)
-branch_23.add(Convolution2D(48, 3, 3, border_mode='same'))
-branch_23.add(Activation("relu"))
-branch_25 = Sequential()
-branch_25.add(pool1)
-branch_25.add(Convolution2D(64, 5, 5, border_mode='same'))
-branch_25.add(Activation("relu"))
-merged2 = Merge([branch_21, branch_23, branch_25], mode='concat')
-
-#Last processing stage
+#Create deep learning architecture
 model = Sequential()
-model.add(merged2)
+model.add(Convolution2D(16, 5, 5, border_mode='valid', input_shape=(28, 28, 1)))
+model.add(Activation("relu"))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Convolution2D(32, 5, 5))
+model.add(Activation("relu"))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Convolution2D(64, 5, 5))
 model.add(Flatten())
 model.add(Activation("relu"))
 model.add(Dense(10))
@@ -80,12 +54,12 @@ model.add(Activation("softmax"))
 
 #Train the network and evaluate on the test set
 model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
-model.fit([train_dataset, train_dataset, train_dataset], train_labels, nb_epoch=5, batch_size=batch_size)
-loss_and_metrics = model.evaluate([test_dataset, test_dataset, test_dataset], test_labels,
+model.fit(train_dataset, train_labels, nb_epoch=5, batch_size=batch_size)
+loss_and_metrics = model.evaluate(test_dataset, test_labels,
                                   batch_size=batch_size)
 
 #Show outcomes
 print("Test_score: {}".format(loss_and_metrics[0]))
 print("Test_accuracy: {}%".format(loss_and_metrics[1]*100))
-#0.130697919896, 96.24%
-#with 0.5 dropout after flattening: 0.139613990642, 96.21%
+#0.146705081347, 95.65%
+#with 32x3 instead of 16x32x64, 0.165560546678, 95.05%

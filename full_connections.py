@@ -75,6 +75,8 @@ model = Sequential()
 model.add(merged2)
 model.add(Flatten())
 model.add(Activation("relu"))
+model.add(Dense(64))
+model.add(Activation("relu"))
 model.add(Dense(10))
 model.add(Activation("softmax"))
 
@@ -87,5 +89,4 @@ loss_and_metrics = model.evaluate([test_dataset, test_dataset, test_dataset], te
 #Show outcomes
 print("Test_score: {}".format(loss_and_metrics[0]))
 print("Test_accuracy: {}%".format(loss_and_metrics[1]*100))
-#0.130697919896, 96.24%
-#with 0.5 dropout after flattening: 0.139613990642, 96.21%
+#0.117232667295, 96.49%
