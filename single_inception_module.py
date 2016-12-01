@@ -39,40 +39,21 @@ print('Validation set', valid_dataset.shape, valid_labels.shape)
 print('Test set', test_dataset.shape, test_labels.shape)
 
 #Create quasi inception module based on GoogLeNet
-#This whole architecture needs to be rebuilt
-#Why is AvPooling set at 7x7? Nonsense. Input size should decrease from module
-#to module and achieve 7x7xlarge shape before feeding AvPooling.
 #First inception module
 branch_11 = Sequential()
-branch_11.add(Convolution2D(4, 1, 1, border_mode='same', input_shape=(28, 28, 1)))
+branch_11.add(Convolution2D(8, 1, 1, border_mode='same', input_shape=(28, 28, 1)))
 branch_11.add(Activation("relu"))
 branch_13 = Sequential()
-branch_13.add(Convolution2D(4, 3, 3, border_mode='same', input_shape=(28, 28, 1)))
+branch_13.add(Convolution2D(16, 3, 3, border_mode='same', input_shape=(28, 28, 1)))
 branch_13.add(Activation("relu"))
 branch_15 = Sequential()
-branch_15.add(Convolution2D(4, 5, 5, border_mode='same', input_shape=(28, 28, 1)))
+branch_15.add(Convolution2D(32, 5, 5, border_mode='same', input_shape=(28, 28, 1)))
 branch_15.add(Activation("relu"))
 merged1 = Merge([branch_11, branch_13, branch_15], mode='concat')
 
-#Second inception module
-branch_21 = Sequential()
-branch_21.add(merged1)
-branch_21.add(Convolution2D(24, 1, 1, border_mode='same', input_shape=(28, 28, 1)))
-branch_21.add(Activation("relu"))
-branch_23 = Sequential()
-branch_23.add(merged1)
-branch_23.add(Convolution2D(24, 3, 3, border_mode='same', input_shape=(28, 28, 1)))
-branch_23.add(Activation("relu"))
-branch_25 = Sequential()
-branch_25.add(merged1)
-branch_25.add(Convolution2D(24, 5, 5, border_mode='same', input_shape=(28, 28, 1)))
-branch_25.add(Activation("relu"))
-merged2 = Merge([branch_21, branch_23, branch_25], mode='concat')
-
 #Last processing stage
 model = Sequential()
-model.add(merged2)
-model.add(AveragePooling2D(pool_size=(7, 7), border_mode='valid'))
+model.add(merged1)
 model.add(Flatten())
 model.add(Activation("relu"))
 model.add(Dense(10))
@@ -80,11 +61,12 @@ model.add(Activation("softmax"))
 
 #Train the network and evaluate on the test set
 model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
-model.fit([train_dataset, train_dataset, train_dataset], train_labels, nb_epoch=2, batch_size=batch_size)
+model.fit([train_dataset, train_dataset, train_dataset], train_labels, nb_epoch=5, batch_size=batch_size)
 loss_and_metrics = model.evaluate([test_dataset, test_dataset, test_dataset], test_labels,
                                   batch_size=batch_size)
 
 #Show outcomes
 print("Test_score: {}".format(loss_and_metrics[0]))
 print("Test_accuracy: {}%".format(loss_and_metrics[1]*100))
-#0.238143702996, 93.67%
+#0.182617750598, 95.11%
+#with 0.5 dropout: 0.184655464399, 95.02%
